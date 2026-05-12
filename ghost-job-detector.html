@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Job Verification Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .header {
+      max-width: 680px;
+      margin: 0 auto 2rem;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #1a1a1a;
+    }
+    .header p {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 2rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 0.5px solid #e0e0e0;
+    }
+    .section:last-of-type {
+      border-bottom: none;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+    .check-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f9f9f9;
+      transition: all 0.2s;
+      border: 0.5px solid transparent;
+    }
+    .check-item:hover {
+      background: #f5f5f5;
+    }
+    .check-item:has(input:checked) {
+      background: #f0f8ff;
+      border-color: #0066cc;
+    }
+    input[type="checkbox"] {
+      margin-top: 3px;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      accent-color: #0066cc;
+    }
+    .check-label {
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.5;
+      cursor: pointer;
+      color: #333;
+    }
+    .check-label strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+      color: #1a1a1a;
+    }
+    .check-label span {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+    
+    .result-box {
+      border-radius: 8px;
+      padding: 1.25rem;
+      border: 1px solid;
+      margin-top: 2rem;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .result-good {
+      background: #f0fdf4;
+      border-color: #22c55e;
+    }
+    .result-caution {
+      background: #fffbeb;
+      border-color: #f59e0b;
+    }
+    .result-bad {
+      background: #fef2f2;
+      border-color: #ef4444;
+    }
+    
+    .result-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .result-title.good { color: #16a34a; }
+    .result-title.caution { color: #d97706; }
+    .result-title.bad { color: #dc2626; }
+    
+    .result-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    button {
+      padding: 8px 14px;
+      font-size: 13px;
+      border: 0.5px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      color: #333;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    button:hover {
+      background: #f5f5f5;
+      border-color: #bbb;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    .progress-bar {
+      height: 3px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #0066cc;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    
+    .summary {
+      font-size: 12px;
+      color: #666;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 0.5px solid #e0e0e0;
+    }
+    .summary strong {
+      color: #333;
+    }
+
+    .footer {
+      max-width: 680px;
+      margin: 2rem auto 0;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Ghost Job Detector</h1>
+  <p>Is this job posting real or a ghost job? Verify before you invest hours in your application.</p>
+</div>
+
+<div class="container">
+  <div class="section">
+    <div class="section-title">Company presence & legitimacy</div>
+    <div class="check-group" id="group1">
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Company has active LinkedIn page</strong><span>With recent posts, employees, and engagement in the last 90 days</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Job posting matches their "Careers" page</strong><span>Same role, similar details — if they have a careers page, the role is listed there</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Verifiable contact person named</strong><span>Hiring manager, recruiter, or team lead with a real name (not generic like "Hiring Team")</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Company website is live & current</strong><span>Not a placeholder; shows active business operations</span></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Job posting quality & specificity</div>
+    <div class="check-group" id="group2">
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Specific team or department named</strong><span>"Engineering" is vague; "Infrastructure Security Team" is specific</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Concrete responsibilities, not just bullet points</strong><span>You can picture what a day in the role actually looks like</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Salary range or compensation bands listed</strong><span>Transparency about pay suggests serious hiring</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Clear, tailored job description</strong><span>Not generic copy-paste; specific to this role and team</span></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Hiring timeline & process signals</div>
+    <div class="check-group" id="group3">
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Posted in the last 60 days</strong><span>Very old postings (180+ days) often indicate inactive roles</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Company is actively recruiting in related roles</strong><span>Multiple open positions suggest real hiring, not placeholder postings</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Application process is straightforward</strong><span>Direct link to apply, clear next steps — not a confusing maze of redirects</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Response timeline mentioned or inferrable</strong><span>"We'll be in touch within 2 weeks" or a career page explaining their process</span></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Red flags that suggest this might be a ghost job</div>
+    <div class="check-group" id="group4">
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Posting has been live for 180+ days with no update</strong><span>A genuinely active search closes or updates the listing</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Vague salary ("competitive pay") or unusually broad range</strong><span>"$30k–$150k" isn't a range; it's a placeholder</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Generic job description or copy-paste from elsewhere</strong><span>Search for 1-2 sentences on Google; if it appears verbatim on 10+ sites, it's likely recycled</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>No mention of how to contact or who to contact</strong><span>A phantom email or no clear application route</span></span>
+      </label>
+      <label class="check-item">
+        <input type="checkbox" onchange="updateScore()">
+        <span class="check-label"><strong>Unrealistic requirements (10 years in a 3-year-old framework)</strong><span>Sometimes a wish list masquerading as a position</span></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="result-box" id="result">
+    <div class="result-title" id="result-title"></div>
+    <div class="result-text" id="result-text"></div>
+    <div class="actions">
+      <button onclick="copyLink()">Copy link to this tool</button>
+      <button onclick="resetForm()">Check another role</button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <strong><span id="checked-count">0</span> of <span id="total-count">20</span></strong> green flags present
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width: 0%;"></div></div>
+  </div>
+</div>
+
+<div class="footer">
+  <p><strong>What's a ghost job?</strong> A real company posting a real job title, but with no active intention to hire. It wastes your time and erodes your confidence. Use this tool to spot fakes before you invest 4–6 hours on a tailored application.</p>
+</div>
+
+<script>
+function updateScore() {
+  const allChecks = document.querySelectorAll('input[type="checkbox"]');
+  const total = allChecks.length;
+  const checked = Array.from(allChecks).filter(c => c.checked).length;
+  
+  document.getElementById('checked-count').textContent = checked;
+  document.getElementById('total-count').textContent = total;
+  document.getElementById('progress').style.width = (checked / total * 100) + '%';
+  
+  const redFlagChecks = Array.from(document.querySelectorAll('#group4 input[type="checkbox"]'));
+  const redFlagsPresent = redFlagChecks.filter(c => c.checked).length;
+  
+  const greenFlagRatio = checked / total;
+  
+  let verdict, title, text, className;
+  
+  if (redFlagsPresent >= 3) {
+    verdict = 'bad';
+    title = '⚠ High risk: likely a ghost job';
+    text = 'This posting shows ' + redFlagsPresent + ' red flags. The signals suggest this may not be active hiring. Save your energy for opportunities with stronger legitimacy signals.';
+  } else if (greenFlagRatio < 0.5) {
+    verdict = 'caution';
+    title = '⚠ Proceed with caution';
+    text = 'This posting lacks several key legitimacy signals. You can apply, but manage expectations. Don\'t invest hours in a custom cover letter without more verification.';
+  } else if (greenFlagRatio >= 0.75 && redFlagsPresent === 0) {
+    verdict = 'good';
+    title = '✓ Strong legitimacy signals';
+    text = 'This posting shows strong signs of active, genuine hiring. It\'s worth your time. Tailor your application and follow up professionally if you don\'t hear back in 2–3 weeks.';
+  } else {
+    verdict = 'caution';
+    title = '~ Moderate signals';
+    text = 'This posting has some good signs, but a few gaps in clarity or specificity. Apply if genuinely interested, but stay alert for ghosting patterns.';
+  }
+  
+  const resultBox = document.getElementById('result');
+  resultBox.className = 'result-box result-' + verdict;
+  resultBox.style.display = 'block';
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-title').className = 'result-title ' + verdict;
+  document.getElementById('result-text').textContent = text;
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('checked-count').textContent = '0';
+  document.getElementById('progress').style.width = '0%';
+}
+
+function copyLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Link copied to clipboard!');
+  }).catch(() => {
+    const input = document.createElement('input');
+    input.value = url;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    alert('Link copied to clipboard!');
+  });
+}
+</script>
+
+</body>
+</html>
